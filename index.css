@@ -171,6 +171,7 @@ input[type="search"]:focus {
     letter-spacing: 0.5px;
     cursor: pointer;
     transition: all 0.15s ease;
+    margin: 8px 8px 0 0;
 }
 
 .btn:hover, .a:hover {
@@ -187,6 +188,10 @@ input[type="search"]:focus {
 .btn.ghost:hover, .a.ghost:hover {
     background: var(--accent);
     color: white;
+}
+
+.btn + .btn {
+    margin-top: 8px; /* ensures stacked buttons aren’t touching */
 }
 
 /*  Overlay & Panel  */

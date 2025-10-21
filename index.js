@@ -1,141 +1,224 @@
-const sample = [
-    {title:'Endless Button', desc:'A button that only counts clicks.'},
-    {title:'Random Color Button', desc:'Show a random color and its hex value.'}
+// Sample Buttons 
+const sampleButtons = [
+    { title: 'Endless Button', description: 'A button that only counts clicks.' },
+    { title: 'Random Color Button', description: 'Show a random color and its hex value.' }
 ];
 
-const projectsEl = document.getElementById('projects');
+// DOM Elements
+const projectsContainer = document.getElementById('projects');
 const searchInput = document.getElementById('search');
 
-let projects = [...sample];
+// State
+let buttonsList = [...sampleButtons];
 
-function render(list){
-    projectsEl.innerHTML = '';
-    if(list.length === 0){
-        projectsEl.innerHTML = '<div class="empty">No matching buttons found.</div>';
+// Escape HTML to prevent injection (YES THIS IS VERY IMPORTANT ANYONE WHO EVEN EVER TOUCHED HTML SHOULD KNOW THIS)
+function escapeHtml(text) {
+    return String(text).replace(/[&<>"']/g, function(character) {
+        const map = { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' };
+        return map[character];
+    });
+}
+
+// Rendering
+function renderButtons(list) {
+    // Clear previous cards
+    projectsContainer.innerHTML = '';
+
+    // Show empty state if nothing matches
+    if (list.length === 0) {
+        const emptyMessage = document.createElement('div');
+        emptyMessage.className = 'empty';
+        emptyMessage.textContent = 'No matching buttons found.';
+        projectsContainer.appendChild(emptyMessage);
         return;
     }
-    list.forEach((p, i) => {
+
+    // Create cards for each button
+    list.forEach((button, index) => {
         const card = document.createElement('article');
         card.className = 'card';
         card.innerHTML = `
             <div>
-                <h3>${escapeHtml(p.title)}</h3>
-                <p>${escapeHtml(p.desc || '')}</p>
+                <h3>${escapeHtml(button.title)}</h3>
+                <p>${escapeHtml(button.description)}</p>
             </div>
             <div class="meta">
-                <a class="open" href="#" data-index="${i}" role="button">Open</a>
+                <a class="open" href="#" data-index="${index}" role="button">Open</a>
             </div>
         `;
-        projectsEl.appendChild(card);
+        projectsContainer.appendChild(card);
     });
 }
 
-function escapeHtml(s){ 
-    return String(s).replace(/[&<>"']/g, c => ({
-        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-    }[c]));
+// Filtering 
+function filterButtons(query) {
+    const lowerQuery = query.toLowerCase().trim();
+    return buttonsList.filter(button => {
+        const text = (button.title + ' ' + button.description).toLowerCase();
+        return text.includes(lowerQuery);
+    });
 }
 
-function filter(q){
-    q = (q||'').toLowerCase().trim();
-    return projects.filter(p => ((p.title||'') + ' ' + (p.desc||''))
-        .toLowerCase().includes(q));
-}
-
-searchInput.addEventListener('input', e => render(filter(e.target.value)));
-
-projectsEl.addEventListener('click', e => {
-    const btn = e.target.closest('.open');
-    if(!btn) return;
-    e.preventDefault();
-    const idx = Number(btn.dataset.index);
-    const p = projects[idx];
-    if(!p) return;
-    openProject(p);
+// Update displayed buttons when typing in search
+searchInput.addEventListener('input', function(event) {
+    const filtered = filterButtons(event.target.value);
+    renderButtons(filtered);
 });
 
-function openProject(p){
-    if(p.title.includes('Endless')) return openCounter();
-    if(p.title.includes('Color')) return openColor();
-    openPanel(`<h2>${escapeHtml(p.title)}</h2><p>${escapeHtml(p.desc||'')}</p>`);
-}
+// Open Button Handler 
+projectsContainer.addEventListener('click', function(event) {
+    const openButton = event.target.closest('.open');
+    if (!openButton) return;
 
-function openPanel(innerHtml, focusSelector){
-    const overlay = document.createElement('div');
-    overlay.className = 'overlay';
-    overlay.innerHTML = `<div class="panel" role="dialog" aria-modal="true">${innerHtml}<div style="text-align:right;margin-top:12px"><button class="btn close">Close</button></div></div>`;
-    document.body.appendChild(overlay);
-    const close = overlay.querySelector('.close');
-    function remove(){ document.body.removeChild(overlay); document.removeEventListener('keydown', onKey); }
-    close.addEventListener('click', remove);
-    function onKey(e){ if(e.key === 'Escape') remove(); }
-    document.addEventListener('keydown', onKey);
-    if(focusSelector){
-        const el = overlay.querySelector(focusSelector);
-        if(el) el.focus();
+    event.preventDefault();
+    const index = Number(openButton.dataset.index);
+    const button = buttonsList[index];
+    if (!button) return;
+
+    openButtonPanel(button);
+});
+
+// Open specific panel
+function openButtonPanel(button) {
+    if (button.title.includes('Endless')) {
+        openCounterButton();
+    } else if (button.title.includes('Color')) {
+        openColorButton();
     } else {
-        close.focus();
+        openGenericPanel(button);
     }
 }
 
-function openCounter(){
+// Panel
+function openGenericPanel(button) {
+    const overlay = document.createElement('div');
+    overlay.className = 'overlay';
+    overlay.innerHTML = `
+        <div class="panel" role="dialog" aria-modal="true">
+            <h2>${escapeHtml(button.title)}</h2>
+            <p>${escapeHtml(button.description)}</p>
+            <div style="text-align:right;margin-top:12px">
+                <button class="btn close">Close</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const closeButton = overlay.querySelector('.close');
+    closeButton.addEventListener('click', () => removeOverlay(overlay));
+
+    document.addEventListener('keydown', function onKey(event) {
+        if (event.key === 'Escape') removeOverlay(overlay);
+    });
+
+    closeButton.focus();
+}
+
+function removeOverlay(overlay) {
+    document.body.removeChild(overlay);
+}
+
+// Endless Button
+function openCounterButton() {
     const html = `
         <h2>Endless Button</h2>
         <p>Click the button below. It only counts clicks.</p>
         <div class="row">
             <button id="countBtn" class="btn">Clicks: <span id="count">0</span></button>
-            <button id="reset" class="btn ghost">Reset</button>
+            <button id="resetBtn" class="btn ghost">Reset</button>
         </div>
     `;
-    openPanel(html, '#countBtn');
+    createOverlay(html);
+
     const overlay = document.querySelector('.overlay:last-of-type');
-    const countEl = overlay.querySelector('#count');
-    const btn = overlay.querySelector('#countBtn');
-    const reset = overlay.querySelector('#reset');
-    let c = 0;
-    btn.addEventListener('click', () => { c++; countEl.textContent = c; });
-    reset.addEventListener('click', () => { c = 0; countEl.textContent = c; });
+    const countElement = overlay.querySelector('#count');
+    const countButton = overlay.querySelector('#countBtn');
+    const resetButton = overlay.querySelector('#resetBtn');
+
+    let count = 0;
+
+    countButton.addEventListener('click', () => {
+        count++;
+        countElement.textContent = count;
+    });
+
+    resetButton.addEventListener('click', () => {
+        count = 0;
+        countElement.textContent = count;
+    });
 }
 
-function randHex(){
-    return '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6,'0').toUpperCase();
+// Random Color Button
+function randHexColor() {
+    return '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6,'0').toUpperCase();
 }
 
-function openColor(){
-    const color = randHex();
+function openColorButton() {
+    const initialColor = randHexColor();
+
     const html = `
         <h2>Random Color Button</h2>
         <p>Click "New Color" to generate a random color. The hex value is shown.</p>
         <div class="row">
-            <div class="color-box" id="colorBox" style="background:${color}"></div>
+            <div class="color-box" id="colorBox" style="background:${initialColor}"></div>
             <div style="flex:1">
-                <div style="font-weight:600" id="hex">${color}</div>
+                <div style="font-weight:600" id="hexValue">${initialColor}</div>
                 <div style="margin-top:8px">
-                    <button id="newColor" class="btn">New Color</button>
-                    <button id="copyHex" class="btn ghost">Copy</button>
+                    <button id="newColorBtn" class="btn">New Color</button>
+                    <button id="copyHexBtn" class="btn ghost">Copy</button>
                 </div>
             </div>
         </div>
     `;
-    openPanel(html, '#newColor');
-    const overlay = document.querySelector('.overlay:last-of-type');
-    const box = overlay.querySelector('#colorBox');
-    const hexEl = overlay.querySelector('#hex');
-    const newColorBtn = overlay.querySelector('#newColor');
-    const copyBtn = overlay.querySelector('#copyHex');
+    createOverlay(html);
 
-    newColorBtn.addEventListener('click', () => {
-        const h = randHex();
-        box.style.background = h;
-        hexEl.textContent = h;
+    const overlay = document.querySelector('.overlay:last-of-type');
+    const colorBox = overlay.querySelector('#colorBox');
+    const hexText = overlay.querySelector('#hexValue');
+    const newColorButton = overlay.querySelector('#newColorBtn');
+    const copyButton = overlay.querySelector('#copyHexBtn');
+
+    newColorButton.addEventListener('click', () => {
+        const newColor = randHexColor();
+        colorBox.style.background = newColor;
+        hexText.textContent = newColor;
     });
-    copyBtn.addEventListener('click', async () => {
-        try{ 
-            await navigator.clipboard.writeText(hexEl.textContent); 
-            copyBtn.textContent='Copied'; 
-            setTimeout(()=>copyBtn.textContent='Copy',1000); 
-        }catch(e){ /* ignore */ }
+
+    copyButton.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(hexText.textContent);
+            copyButton.textContent = 'Copied';
+            setTimeout(() => copyButton.textContent = 'Copy', 1000);
+        } catch (e) {
+            console.error('Copy failed', e);
+        }
     });
 }
 
-render(projects);
+// Create Overlay
+function createOverlay(innerHTML) {
+    const overlay = document.createElement('div');
+    overlay.className = 'overlay';
+
+    // Always add the close button at the bottom
+    overlay.innerHTML = `
+        <div class="panel" role="dialog" aria-modal="true">
+            ${innerHTML}
+            <div style="text-align:right;margin-top:12px">
+                <button class="btn close">Close</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const closeButton = overlay.querySelector('.close');
+    closeButton.addEventListener('click', () => removeOverlay(overlay));
+
+    document.addEventListener('keydown', function onKey(e) {
+        if (e.key === 'Escape') removeOverlay(overlay);
+    });
+}
+
+// Initial render
+renderButtons(buttonsList);

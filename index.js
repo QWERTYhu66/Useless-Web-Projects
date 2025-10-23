@@ -219,26 +219,31 @@ function createOverlay(innerHTML) {
         if (e.key === 'Escape') removeOverlay(overlay);
     });
 }
+document.addEventListener('DOMContentLoaded', () => {
+    // Dark Mode Toggle
+    const darkToggle = document.getElementById('darkModeToggle');
+    const darkLabel = document.getElementById('darkModeLabel');
 
-// Dark Mode Toggle
-const darkToggle = document.getElementById('darkModeToggle');
+    darkToggle.addEventListener('change', () => {
+        const htmlEl = document.documentElement;
+        if (darkToggle.checked) {
+            htmlEl.setAttribute('data-theme', 'dark');
+            darkLabel.textContent = 'Dark';
+            localStorage.setItem('theme', 'dark');
+        } else {
+            htmlEl.removeAttribute('data-theme');
+            darkLabel.textContent = 'Light';
+            localStorage.setItem('theme', 'light');
+        }
+    });
 
-darkToggle.addEventListener('change', () => {
-    const htmlEl = document.documentElement;
-    if (darkToggle.checked) {
-        htmlEl.setAttribute('data-theme', 'dark');
-        localStorage.setItem('theme', 'dark');
-    } else {
-        htmlEl.removeAttribute('data-theme');
-        localStorage.setItem('theme', 'light');
+    // Load user preference
+    if (localStorage.getItem('theme') === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        darkToggle.checked = true;
+        darkLabel.textContent = 'Dark';
     }
 });
-
-// Load user preference
-if (localStorage.getItem('theme') === 'dark') {
-    document.documentElement.setAttribute('data-theme', 'dark');
-    darkToggle.checked = true;
-}
 
 
 // Initial render

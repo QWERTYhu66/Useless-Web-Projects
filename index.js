@@ -1,7 +1,8 @@
 // Sample Buttons 
 const sampleButtons = [
     { title: 'Endless Button', description: 'A button that only counts clicks.' },
-    { title: 'Random Color Button', description: 'Show a random color and its hex value.' }
+    { title: 'Random Color Button', description: 'Show a random color and its hex value.' },
+    { title: 'Cats and Dogs Button', description: 'Shows random cat and dog pictures.' }
 ];
 
 // DOM Elements
@@ -84,6 +85,8 @@ function openButtonPanel(button) {
         openCounterButton();
     } else if (button.title.includes('Color')) {
         openColorButton();
+    } else if (button.title.includes('Cats')) {
+        openCatsAndDogsButton();
     } else {
         openGenericPanel(button);
     }
@@ -194,6 +197,68 @@ function openColorButton() {
         }
     });
 }
+
+// Cats and Dogs button
+function openCatsAndDogsButton() {
+    const html = `
+        <h2>Cats and Dogs Button</h2>
+        <p>This button shows random images of cats and dogs.</p>
+        <div class="row">
+            <button id="newImageBtn" class="btn">New Image</button>
+            <div id="imageContainer" style="margin-top:12px;text-align:center"></div>
+        </div>
+    `;
+    createOverlay(html);
+
+    const overlay = document.querySelector('.overlay:last-of-type');
+    const imageContainer = overlay.querySelector('#imageContainer');
+    const newImageButton = overlay.querySelector('#newImageBtn');
+
+    async function fetchRandomImage() {
+        const isCat = Math.random() < 0.5;
+        if (isCat) {
+            return `https://cataas.com/cat?${Date.now()}`;
+        }
+
+        try {
+            const response = await fetch('https://random.dog/woof.json');
+            const data = await response.json();
+
+            if (!data.url.match(/\.(jpg|jpeg|png|gif)$/i)) {
+                return fetchRandomImage();
+            }
+
+            return data.url;
+        } catch (e) {
+            console.warn('Fetch failed, retrying...', e);
+            return fetchRandomImage();
+        }
+    }
+
+    async function showNewImage() {
+        const imageUrl = await fetchRandomImage();
+
+        const img = new Image();
+        img.src = imageUrl;
+        img.alt = "Random Animal";
+        img.style.maxWidth = "100%";
+        img.style.height = "auto";
+        img.style.borderRadius = "8px";
+
+        img.onerror = async () => {
+            console.warn("Image failed to load, retrying...");
+            showNewImage();
+        };
+
+        imageContainer.innerHTML = "";
+        imageContainer.appendChild(img);
+    }
+
+    newImageButton.addEventListener("click", showNewImage);
+
+    showNewImage();
+}
+
 
 // Create Overlay
 function createOverlay(innerHTML) {

@@ -40,7 +40,7 @@ html, body {
     background: var(--card);
     border: 3px solid var(--border);
     border-radius: 20px;
-    box-shadow: 8px 8px 0 var(--accent);
+    box-shadow: 8px 8px 6px var(--accent);
 }
 
 header {
@@ -95,13 +95,13 @@ input[type="search"]:focus {
     border: 2px solid var(--border);
     border-radius: 14px;
     padding: 20px;
-    box-shadow: 3px 3px 0 var(--accent);
+    box-shadow: 3px 3px 3px var(--accent);
     transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .card:hover {
     transform: translate(-3px, -3px);
-    box-shadow: 6px 6px 0 var(--accent);
+    box-shadow: 6px 6px 5px var(--accent);
 }
 
 .card h3 {
@@ -207,7 +207,7 @@ input[type="search"]:focus {
     padding: 28px;
     border-radius: 12px;
     width: min(90%, 420px);
-    box-shadow: 6px 6px 0 var(--accent);
+    box-shadow: 6px 6px 5px var(--accent);
     transform: translateY(10px);
     animation: popIn 0.25s ease forwards;
 }

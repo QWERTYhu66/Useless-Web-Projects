@@ -2,7 +2,8 @@ const sampleButtons = [
     { title: 'Endless Button', description: 'A button that only counts clicks.' },
     { title: 'Random Color Button', description: 'Show a random color and its hex value.' },
     { title: 'Cats and Dogs Button', description: 'Shows random cat and dog pictures.' },
-    { title: 'Random Word Button', description: 'Click to get a random word.' }
+    { title: 'Random Word Button', description: 'Click to get a random word.' },
+    { title: 'Random Code Button', description: 'Click to get a random line of code.'}
 ];
 
 const projectsContainer = document.getElementById('projects');
@@ -78,6 +79,8 @@ function openButtonPanel(button) {
         openCatsAndDogsButton();
     } else if (button.title.includes('Random Word')) {
         openRandomWordButton();
+    } else if (button.title.includes('Random Code')) {
+        openRandomCodeButton();
     } else {
         openGenericPanel(button);
     }
@@ -130,6 +133,28 @@ function openRandomWordButton() {
 
     newWordBtn.addEventListener('click', () => {
         wordDisplay.textContent = randomWordFromList();
+    });
+}
+
+function openRandomCodeButton() {
+    const html = `
+        <h2>Random Code</h2>
+        <p>Click to get a random line of code.</p>
+        <div class="row" style="align-items:center; gap:8px;">
+            <button id="newCodeBtn" class="btn">New line of code</button>
+            <div id="codeDisplay" style="font-weight:600"></div>
+        </div>
+    `;
+    createOverlay(html);
+
+    const overlay = document.querySelector('.overlay:last-of-type');
+    const codeDisplay = overlay.querySelector('#codeDisplay');
+    const newCodeBtn = overlay.querySelector('#newCodeBtn');
+
+    codeDisplay.textContent = randomCodeFromList();
+
+    newCodeBtn.addEventListener('click', () => {
+        codeDisplay.textContent = randomCodeFromList();
     });
 }
 
@@ -268,6 +293,28 @@ function openCatsAndDogsButton() {
     showNewImage();
 }
 
+
+let codeList = [];
+
+async function loadCodeList(url) {
+  try {
+    const response = await fetch(url);
+    const text   = await response.text();
+    codeList = text.split(/\r?\n/).filter(w => w.length > 0);
+  } catch (err) {
+    console.error('Failed to load code list:', err);
+  }
+}
+
+function randomCodeFromList() {
+  if (codeList.length === 0) {
+    console.warn('Word list is empty – falling back to random chars');
+    return randomWordFallback(8);  // maybe call your old method
+  }
+  const idx = Math.floor(Math.random() * codeList.length);
+  return codeList[idx];
+}
+
 let wordList = [];
 
 async function loadWordList(url) {
@@ -300,6 +347,7 @@ function randomWordFallback(length) {
 
 document.addEventListener('DOMContentLoaded', () => {
   loadWordList('./12dicts_words.txt');
+  loadCodeList('');
 });
 
 function createOverlay(innerHTML) {

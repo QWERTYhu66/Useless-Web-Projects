@@ -325,34 +325,38 @@ function createOverlay(innerHTML) {
     });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+function changeTheme() {
     const darkToggle = document.getElementById('darkModeToggle');
     const darkLabel = document.getElementById('darkModeLabel');
     const htmlEl = document.documentElement;
 
-    const savedTheme = localStorage.getItem('theme');
-
-    if (savedTheme === 'dark') {
+    if (darkToggle.checked) {
+        localStorage.setItem('theme', 'dark');
         htmlEl.setAttribute('data-theme', 'dark');
-        darkToggle.checked = true;
         darkLabel.textContent = 'Dark';
     } else {
+        localStorage.setItem('theme', 'light');
         htmlEl.removeAttribute('data-theme');
-        darkToggle.checked = false;
         darkLabel.textContent = 'Light';
-    }
+    };
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    const darkToggle = document.getElementById('darkModeToggle');
+    const savedTheme = localStorage.getItem('theme');
 
     darkToggle.addEventListener('change', () => {
-        if (darkToggle.checked) {
-            localStorage.setItem('theme', 'dark');
-            htmlEl.setAttribute('data-theme', 'dark');
-            darkLabel.textContent = 'Dark';
-        } else {
-            localStorage.setItem('theme', 'light');
-            htmlEl.removeAttribute('data-theme');
-            darkLabel.textContent = 'Light';
-        }
+       changeTheme()
     });
+    
+    if (savedTheme === 'dark') {
+        darkToggle.checked = true;
+        changeTheme()
+    } else {
+        darkToggle.checked = false;
+        changeTheme()
+    }
+
 });
 
 renderButtons(buttonsList);

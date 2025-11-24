@@ -1,18 +1,15 @@
-// Sample Buttons 
 const sampleButtons = [
     { title: 'Endless Button', description: 'A button that only counts clicks.' },
     { title: 'Random Color Button', description: 'Show a random color and its hex value.' },
-    { title: 'Cats and Dogs Button', description: 'Shows random cat and dog pictures.' }
+    { title: 'Cats and Dogs Button', description: 'Shows random cat and dog pictures.' },
+    { title: 'Random Word Button', description: 'Click to get a random word.' }
 ];
 
-// DOM Elements
 const projectsContainer = document.getElementById('projects');
 const searchInput = document.getElementById('search');
 
-// State
 let buttonsList = [...sampleButtons];
 
-// Escape HTML to prevent injection (YES THIS IS VERY IMPORTANT ANYONE WHO EVEN EVER TOUCHED HTML SHOULD KNOW THIS)
 function escapeHtml(text) {
     return String(text).replace(/[&<>"']/g, function(character) {
         const map = { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' };
@@ -20,12 +17,9 @@ function escapeHtml(text) {
     });
 }
 
-// Rendering
 function renderButtons(list) {
-    // Clear previous cards
     projectsContainer.innerHTML = '';
 
-    // Show empty state if nothing matches
     if (list.length === 0) {
         const emptyMessage = document.createElement('div');
         emptyMessage.className = 'empty';
@@ -34,7 +28,6 @@ function renderButtons(list) {
         return;
     }
 
-    // Create cards for each button
     list.forEach((button, index) => {
         const card = document.createElement('article');
         card.className = 'card';
@@ -51,7 +44,6 @@ function renderButtons(list) {
     });
 }
 
-// Filtering 
 function filterButtons(query) {
     const lowerQuery = query.toLowerCase().trim();
     return buttonsList.filter(button => {
@@ -60,13 +52,11 @@ function filterButtons(query) {
     });
 }
 
-// Update displayed buttons when typing in search
 searchInput.addEventListener('input', function(event) {
     const filtered = filterButtons(event.target.value);
     renderButtons(filtered);
 });
 
-// Open Button Handler 
 projectsContainer.addEventListener('click', function(event) {
     const openButton = event.target.closest('.open');
     if (!openButton) return;
@@ -79,7 +69,6 @@ projectsContainer.addEventListener('click', function(event) {
     openButtonPanel(button);
 });
 
-// Open specific panel
 function openButtonPanel(button) {
     if (button.title.includes('Endless')) {
         openCounterButton();
@@ -87,12 +76,13 @@ function openButtonPanel(button) {
         openColorButton();
     } else if (button.title.includes('Cats')) {
         openCatsAndDogsButton();
+    } else if (button.title.includes('Random Word')) {
+        openRandomWordButton();
     } else {
         openGenericPanel(button);
     }
 }
 
-// Panel
 function openGenericPanel(button) {
     const overlay = document.createElement('div');
     overlay.className = 'overlay';
@@ -121,7 +111,28 @@ function removeOverlay(overlay) {
     document.body.removeChild(overlay);
 }
 
-// Endless Button
+function openRandomWordButton() {
+    const html = `
+        <h2>Random Word</h2>
+        <p>Click the button to get a random word.</p>
+        <div class="row" style="align-items:center; gap:8px;">
+            <button id="newWordBtn" class="btn">New Word</button>
+            <div id="wordDisplay" style="font-weight:600"></div>
+        </div>
+    `;
+    createOverlay(html);
+
+    const overlay = document.querySelector('.overlay:last-of-type');
+    const wordDisplay = overlay.querySelector('#wordDisplay');
+    const newWordBtn = overlay.querySelector('#newWordBtn');
+
+    wordDisplay.textContent = randomWordFromList();
+
+    newWordBtn.addEventListener('click', () => {
+        wordDisplay.textContent = randomWordFromList();
+    });
+}
+
 function openCounterButton() {
     const html = `
         <h2>Endless Button</h2>
@@ -151,7 +162,6 @@ function openCounterButton() {
     });
 }
 
-// Random Color Button
 function randHexColor() {
     return '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6,'0').toUpperCase();
 }
@@ -198,14 +208,13 @@ function openColorButton() {
     });
 }
 
-// Cats and Dogs button
 function openCatsAndDogsButton() {
     const html = `
         <h2>Cats and Dogs Button</h2>
         <p>This button shows random images of cats and dogs.</p>
         <div class="row">
             <button id="newImageBtn" class="btn">New Image</button>
-            <div id="imageContainer" style="margin-top:12px;text-align:center"></div>
+            <div id="imageContainer" style="margin-top:12px;text-align:center; max-height:400px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;"></div>
         </div>
     `;
     createOverlay(html);
@@ -259,13 +268,44 @@ function openCatsAndDogsButton() {
     showNewImage();
 }
 
+let wordList = [];
 
-// Create Overlay
+async function loadWordList(url) {
+  try {
+    const response = await fetch(url);
+    const text   = await response.text();
+    wordList = text.split(/\r?\n/).filter(w => w.length > 0);
+  } catch (err) {
+    console.error('Failed to load word list:', err);
+  }
+}
+
+function randomWordFromList() {
+  if (wordList.length === 0) {
+    console.warn('Word list is empty – falling back to random chars');
+    return randomWordFallback(8);  // maybe call your old method
+  }
+  const idx = Math.floor(Math.random() * wordList.length);
+  return wordList[idx];
+}
+
+function randomWordFallback(length) {
+  const chars = 'abcdefghijklmnopqrstuvwxyz';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadWordList('./12dicts_words.txt');
+});
+
 function createOverlay(innerHTML) {
     const overlay = document.createElement('div');
     overlay.className = 'overlay';
 
-    // Always add the close button at the bottom
     overlay.innerHTML = `
         <div class="panel" role="dialog" aria-modal="true">
             ${innerHTML}
@@ -284,32 +324,35 @@ function createOverlay(innerHTML) {
         if (e.key === 'Escape') removeOverlay(overlay);
     });
 }
+
 document.addEventListener('DOMContentLoaded', () => {
-    // Dark Mode Toggle
     const darkToggle = document.getElementById('darkModeToggle');
     const darkLabel = document.getElementById('darkModeLabel');
+    const htmlEl = document.documentElement;
 
-    darkToggle.addEventListener('change', () => {
-        const htmlEl = document.documentElement;
-        if (darkToggle.checked) {
-            htmlEl.setAttribute('data-theme', 'dark');
-            darkLabel.textContent = 'Dark';
-            localStorage.setItem('theme', 'dark');
-        } else {
-            htmlEl.removeAttribute('data-theme');
-            darkLabel.textContent = 'Light';
-            localStorage.setItem('theme', 'light');
-        }
-    });
+    const savedTheme = localStorage.getItem('theme');
 
-    // Load user preference
-    if (localStorage.getItem('theme') === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
+    if (savedTheme === 'dark') {
+        htmlEl.setAttribute('data-theme', 'dark');
         darkToggle.checked = true;
         darkLabel.textContent = 'Dark';
+    } else {
+        htmlEl.removeAttribute('data-theme');
+        darkToggle.checked = false;
+        darkLabel.textContent = 'Light';
     }
+
+    darkToggle.addEventListener('change', () => {
+        if (darkToggle.checked) {
+            localStorage.setItem('theme', 'dark');
+            htmlEl.setAttribute('data-theme', 'dark');
+            darkLabel.textContent = 'Dark';
+        } else {
+            localStorage.setItem('theme', 'light');
+            htmlEl.removeAttribute('data-theme');
+            darkLabel.textContent = 'Light';
+        }
+    });
 });
 
-
-// Initial render
 renderButtons(buttonsList);

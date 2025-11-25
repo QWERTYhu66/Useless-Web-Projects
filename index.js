@@ -308,8 +308,8 @@ async function loadCodeList(url) {
 
 function randomCodeFromList() {
   if (codeList.length === 0) {
-    console.warn('Word list is empty – falling back to random chars');
-    return randomWordFallback(8);  // maybe call your old method
+    console.warn('Code list is empty - falling back to random chars');
+    return randomWordFallback(8);
   }
   const idx = Math.floor(Math.random() * codeList.length);
   return codeList[idx];
@@ -329,8 +329,8 @@ async function loadWordList(url) {
 
 function randomWordFromList() {
   if (wordList.length === 0) {
-    console.warn('Word list is empty – falling back to random chars');
-    return randomWordFallback(8);  // maybe call your old method
+    console.warn('Word list is empty - falling back to random chars');
+    return randomWordFallback(8);
   }
   const idx = Math.floor(Math.random() * wordList.length);
   return wordList[idx];

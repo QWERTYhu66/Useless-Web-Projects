@@ -207,9 +207,9 @@ function openAskewButton() {
     const askewButton = overlay.querySelector('#askewBtn');
 
     askewButton.addEventListener('click', () => {
-        let max = 5;
-        let min = -5;
-        let askewDegree = Math.round((Math.random() * (max - min) + min) * 1000) / 1000;
+        let askewDegree = Math.round((Math.random() * (5 - -5) + -5) * 1000) / 1000;
+        while (askewDegree >= -0.199 && askewDegree <= 0.199) {
+            askewDegree = Math.round((Math.random() * (5 - -5) + -5) * 1000) / 1000};
         overlayPanel.style.transform = `rotate(${askewDegree}deg)`;
         projectsGrid.style.transform = `rotate(${askewDegree}deg)`;
         localStorage.setItem('askewDegree', askewDegree);
@@ -495,6 +495,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (overlayPanel) overlayPanel.style.transform = `rotate(${savedAskewDegree}deg)`;
     if (projectsGrid) projectsGrid.style.transform = `rotate(${savedAskewDegree}deg)`;
+    localStorage.setItem('askewDegree', savedAskewDegree);
 });
 
 renderButtons(buttonsList);

@@ -1,9 +1,10 @@
 const sampleButtons = [
     { title: 'Endless Button', description: 'A button that only counts clicks.' },
-    { title: 'Random Color Button', description: 'Show a random color and its hex value.' },
+    { title: 'Random Color Button', description: 'Shows a random color and its hex value.' },
     { title: 'Cats and Dogs Button', description: 'Shows random cat and dog pictures.' },
-    { title: 'Random Word Button', description: 'Click to get a random word.' },
-    { title: 'Random Code Button', description: 'Click to get a random line of code.'}
+    { title: 'Random Word Button', description: 'Gives you a random word.' },
+    { title: 'Random Code Button', description: 'Gives you a random line of code.'},
+    { title: 'Askew Button', description: 'Makes your whole tab askew.'}
 ];
 
 const projectsContainer = document.getElementById('projects');
@@ -53,24 +54,46 @@ function filterButtons(query) {
     });
 }
 
+let buttons = [...buttonsList];
+let currentSearch = '';
+
 searchInput.addEventListener('input', function(event) {
     const filtered = filterButtons(event.target.value);
+    currentSearch = event.target.value;
+    buttons = [...filtered];
     renderButtons(filtered);
 });
 
 projectsContainer.addEventListener('click', function(event) {
     const openButton = event.target.closest('.open');
+
     if (!openButton) return;
-
     event.preventDefault();
+    if (currentSearch === '') buttons = [...buttonsList];
     const index = Number(openButton.dataset.index);
-    const button = buttonsList[index];
-    if (!button) return;
+    const button = buttons[index];
 
+    if (!button) return;
     openButtonPanel(button);
 });
 
+
+let overlayVisible = "";
+
 function openButtonPanel(button) {
+    const darkToggle = document.getElementById('darkModeToggle');
+    const htmlEl = document.documentElement;
+    
+    if (darkToggle.checked) {
+        overlayVisible = "true";
+        localStorage.setItem('theme', 'dark');
+        htmlEl.setAttribute('data-theme', 'dark-overlay');
+    } else {
+        overlayVisible = "true";
+        localStorage.setItem('theme', 'light');
+        htmlEl.setAttribute('data-theme', 'light-overlay');
+    };
+
     if (button.title.includes('Endless')) {
         openCounterButton();
     } else if (button.title.includes('Color')) {
@@ -81,9 +104,11 @@ function openButtonPanel(button) {
         openRandomWordButton();
     } else if (button.title.includes('Random Code')) {
         openRandomCodeButton();
+    } else if (button.title.includes('Askew')) {
+        openAskewButton();
     } else {
         openGenericPanel(button);
-    }
+    };
 }
 
 function openGenericPanel(button) {
@@ -100,6 +125,10 @@ function openGenericPanel(button) {
     `;
     document.body.appendChild(overlay);
 
+    const savedAskewDegree = localStorage.getItem('askewDegree') || 0;
+    const overlayPanel = document.querySelector('.panel-askew');
+    overlayPanel.style.transform = `rotate(${savedAskewDegree}deg)`;
+
     const closeButton = overlay.querySelector('.close');
     closeButton.addEventListener('click', () => removeOverlay(overlay));
 
@@ -112,6 +141,8 @@ function openGenericPanel(button) {
 
 function removeOverlay(overlay) {
     document.body.removeChild(overlay);
+    overlayVisible = "false";
+    changeTheme()
 }
 
 function openRandomWordButton() {
@@ -155,6 +186,39 @@ function openRandomCodeButton() {
 
     newCodeBtn.addEventListener('click', () => {
         codeDisplay.textContent = randomCodeFromList();
+    });
+}
+
+function openAskewButton() {
+    const html = `
+        <h2>Askew Button</h2>
+        <p>Click the left button below and your tab will be askew.</p>
+        <div class="row">
+            <button id="askewBtn" class="btn">Askew screen</button>
+            <button id="resetAskewBtn" class="btn ghost">Reset askew</button>
+        </div>
+    `;
+    createOverlay(html);
+
+    const overlay = document.querySelector('.overlay:last-of-type');
+    const resetAskewButton = overlay.querySelector('#resetAskewBtn');
+    const overlayPanel = document.querySelector('.panel-askew');
+    const projectsGrid = document.querySelector('.wrap');
+    const askewButton = overlay.querySelector('#askewBtn');
+
+    askewButton.addEventListener('click', () => {
+        let max = 5;
+        let min = -5;
+        let askewDegree = Math.round((Math.random() * (max - min) + min) * 1000) / 1000;
+        overlayPanel.style.transform = `rotate(${askewDegree}deg)`;
+        projectsGrid.style.transform = `rotate(${askewDegree}deg)`;
+        localStorage.setItem('askewDegree', askewDegree);
+    });
+
+    resetAskewButton.addEventListener('click', () => {
+        overlayPanel.style.transform = 'rotate(0deg)';
+        projectsGrid.style.transform = 'rotate(0deg)';
+        localStorage.setItem('askewDegree', 0);
     });
 }
 
@@ -308,8 +372,8 @@ async function loadCodeList(url) {
 
 function randomCodeFromList() {
   if (codeList.length === 0) {
-    console.warn('Code list is empty - falling back to random chars');
-    return randomWordFallback(8);
+    console.warn('Word list is empty – falling back to random chars');
+    return randomWordFallback(8);  // maybe call your old method
   }
   const idx = Math.floor(Math.random() * codeList.length);
   return codeList[idx];
@@ -329,8 +393,8 @@ async function loadWordList(url) {
 
 function randomWordFromList() {
   if (wordList.length === 0) {
-    console.warn('Word list is empty - falling back to random chars');
-    return randomWordFallback(8);
+    console.warn('Word list is empty – falling back to random chars');
+    return randomWordFallback(8);  // maybe call your old method
   }
   const idx = Math.floor(Math.random() * wordList.length);
   return wordList[idx];
@@ -355,15 +419,21 @@ function createOverlay(innerHTML) {
     overlay.className = 'overlay';
 
     overlay.innerHTML = `
-        <div class="panel" role="dialog" aria-modal="true">
-            ${innerHTML}
-            <div style="text-align:right;margin-top:12px">
-                <button class="btn close">Close</button>
+        <div class="panel-askew">
+            <div class="panel" role="dialog" aria-modal="true">
+                ${innerHTML}
+                <div style="text-align:right;margin-top:12px">
+                    <button class="btn close">Close</button>
+                </div>
             </div>
         </div>
     `;
 
     document.body.appendChild(overlay);
+
+    const savedAskewDegree = localStorage.getItem('askewDegree') || 0;
+    const overlayPanel = document.querySelector('.panel-askew');
+    overlayPanel.style.transform = `rotate(${savedAskewDegree}deg)`;
 
     const closeButton = overlay.querySelector('.close');
     closeButton.addEventListener('click', () => removeOverlay(overlay));
@@ -375,17 +445,28 @@ function createOverlay(innerHTML) {
 
 function changeTheme() {
     const darkToggle = document.getElementById('darkModeToggle');
-    const darkLabel = document.getElementById('darkModeLabel');
     const htmlEl = document.documentElement;
 
-    if (darkToggle.checked) {
-        localStorage.setItem('theme', 'dark');
-        htmlEl.setAttribute('data-theme', 'dark');
-        darkLabel.textContent = 'Dark';
+    if (overlayVisible === "true") {
+        if (darkToggle.checked) {
+            overlayVisible = "true";
+            localStorage.setItem('theme', 'dark');
+            htmlEl.setAttribute('data-theme', 'dark-overlay');
+        } else {
+            overlayVisible = "true";
+            localStorage.setItem('theme', 'light');
+            htmlEl.setAttribute('data-theme', 'light-overlay');
+        };
     } else {
-        localStorage.setItem('theme', 'light');
-        htmlEl.removeAttribute('data-theme');
-        darkLabel.textContent = 'Light';
+        if (darkToggle.checked) {
+            overlayVisible = "false";
+            localStorage.setItem('theme', 'dark');
+            htmlEl.setAttribute('data-theme', 'dark');
+        } else {
+            overlayVisible = "false";
+            htmlEl.removeAttribute('data-theme');
+            localStorage.setItem('theme', 'light');
+        };
     };
 };
 
@@ -405,6 +486,15 @@ document.addEventListener('DOMContentLoaded', () => {
         changeTheme()
     }
 
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    const savedAskewDegree = localStorage.getItem('askewDegree') || 0;
+    const overlayPanel = document.querySelector('.panel-askew');
+    const projectsGrid = document.querySelector('.wrap');
+
+    if (overlayPanel) overlayPanel.style.transform = `rotate(${savedAskewDegree}deg)`;
+    if (projectsGrid) projectsGrid.style.transform = `rotate(${savedAskewDegree}deg)`;
 });
 
 renderButtons(buttonsList);

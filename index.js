@@ -25,7 +25,9 @@ function renderButtons(list) {
     if (list.length === 0) {
         const emptyMessage = document.createElement('div');
         emptyMessage.className = 'empty';
-        emptyMessage.textContent = 'No matching buttons found.';
+        emptyMessage.innerHTML = `
+            <h3>No matching buttons found.</h3>
+        `;
         projectsContainer.appendChild(emptyMessage);
         return;
     }
@@ -394,7 +396,7 @@ async function loadWordList(url) {
 function randomWordFromList() {
   if (wordList.length === 0) {
     console.warn('Word list is empty – falling back to random chars');
-    return randomWordFallback(8);  // maybe call your old method
+    return randomWordFallback(8);
   }
   const idx = Math.floor(Math.random() * wordList.length);
   return wordList[idx];

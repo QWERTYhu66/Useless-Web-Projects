@@ -19,7 +19,7 @@ const sampleButtons = [
     { title: 'Compliment Generator', description: 'Receive uplifting compliments.' },
     { title: 'Weather Report', description: 'Get a whimsical weather forecast.' },
     { title: 'Lorem Ipsum', description: 'Generate placeholder text for design.' },
-    { title: 'Film Effect', description: 'Add vintage film grain to your screen.' }
+    { title: 'Film Effect (broken, do not use)', description: 'Add vintage film grain to your screen.' }
 ];
 
 const projectsContainer = document.getElementById('projects');

@@ -164,11 +164,15 @@ function openGenericPanel(button) {
     const overlay = document.createElement('div');
     overlay.className = 'overlay';
     overlay.innerHTML = `
-        <div class="panel" role="dialog" aria-modal="true">
-            <h2>${escapeHtml(button.title)}</h2>
-            <p>${escapeHtml(button.description)}</p>
-            <div style="text-align:right;margin-top:12px">
-                <button class="btn close">Close</button>
+        <div class="panel-askew">
+            <div class="panel-shake">
+                <div class="panel" role="dialog" aria-modal="true">
+                    <h2>${escapeHtml(button.title)}</h2>
+                    <p>${escapeHtml(button.description)}</p>
+                    <div style="text-align:right;margin-top:12px">
+                        <button class="btn close">Close</button>
+                    </div>
+                </div>
             </div>
         </div>
     `;
@@ -252,13 +256,13 @@ function openAskewButton() {
     const overlay = document.querySelector('.overlay:last-of-type');
     const resetAskewButton = overlay.querySelector('#resetAskewBtn');
     const overlayPanel = document.querySelector('.panel-askew');
-    const projectsGrid = document.querySelector('.wrap');
+    const projectsGrid = document.querySelector('.wrap-askew');
     const askewButton = overlay.querySelector('#askewBtn');
 
     askewButton.addEventListener('click', () => {
-        let askewDegree = Math.round((Math.random() * (5 - -5) + -5) * 1000) / 1000;
+        let askewDegree = Math.round((Math.random() * (4 - -4) + -4) * 1000) / 1000;
         while (askewDegree >= -0.199 && askewDegree <= 0.199) {
-            askewDegree = Math.round((Math.random() * (5 - -5) + -5) * 1000) / 1000};
+            askewDegree = Math.round((Math.random() * (4 - -4) + -4) * 1000) / 1000};
         overlayPanel.style.transform = `rotate(${askewDegree}deg)`;
         projectsGrid.style.transform = `rotate(${askewDegree}deg)`;
         localStorage.setItem('askewDegree', askewDegree);
@@ -932,11 +936,15 @@ function openPageShakerButton() {
     `;
     createOverlay(html);
     const overlay = document.querySelector('.overlay:last-of-type');
+    const overlayPanel = document.querySelector('.panel-shake');
+    const projectsGrid = document.querySelector('.wrap-shake');
     const shakeBtn = overlay.querySelector('#shakeBtn');
     shakeBtn.addEventListener('click', () => {
-        document.body.style.animation = 'shake 0.5s';
+        overlayPanel.style.animation = 'shake 0.5s';
+        projectsGrid.style.animation = 'shake 0.5s';
         setTimeout(() => {
-            document.body.style.animation = '';
+            overlayPanel.style.animation = '';
+            projectsGrid.style.animation = '';
         }, 500);
     });
 }
@@ -967,10 +975,12 @@ function createOverlay(innerHTML) {
 
     overlay.innerHTML = `
         <div class="panel-askew">
-            <div class="panel" role="dialog" aria-modal="true">
-                ${innerHTML}
-                <div style="text-align:right;margin-top:12px">
-                    <button class="btn close">Close</button>
+            <div class="panel-shake">
+                <div class="panel" role="dialog" aria-modal="true">
+                    ${innerHTML}
+                    <div style="text-align:right;margin-top:12px">
+                        <button class="btn close">Close</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1034,7 +1044,7 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('DOMContentLoaded', () => {
     const savedAskewDegree = localStorage.getItem('askewDegree') || 0;
     const overlayPanel = document.querySelector('.panel-askew');
-    const projectsGrid = document.querySelector('.wrap');
+    const projectsGrid = document.querySelector('.wrap-askew');
 
     if (overlayPanel) overlayPanel.style.transform = `rotate(${savedAskewDegree}deg)`;
     if (projectsGrid) projectsGrid.style.transform = `rotate(${savedAskewDegree}deg)`;
